@@ -17,7 +17,7 @@ Install dependency
 
         $ pip install -r requirement.txt
 
-Configure user and password, edit parsing_courses_to_json or parsing_screencasts_to_json file, add your Username and Password in the code.
+Configure user and password, edit parsing_courses_to_json.py or parsing_screencasts_to_json.py file, add your Username and Password in the code.
 ```python
         Username = "your_username"
         Password = "your_password"
