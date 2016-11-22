@@ -1,5 +1,5 @@
 # Code-School-Downloader
-This is a python code that helps you to download [Code School](codeschool.com) courses and screencasts videos.
+This is a python code that helps you to download [Code School](https://www.codeschool.com/) courses and screencasts videos.
 
 
 # Requirement
