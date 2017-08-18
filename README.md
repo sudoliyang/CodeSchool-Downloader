@@ -1,6 +1,7 @@
 # CodeSchool-Downloader
 This is a python code that helps you to download all videos from [Code School](https://www.codeschool.com/).
 
+If you have any question feel free to contact me at `sudo.liyang [at] gmail.com`.
 
 # Requirement
 
