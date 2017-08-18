@@ -3,6 +3,10 @@ This is a python code that helps you to download all videos from [Code School](h
 
 If you have any question feel free to contact me at `sudo.liyang [at] gmail.com`.
 
+## Demo 
+
+[![See video](http://i.imgur.com/bLdUpUq.png)](https://www.youtube.com/watch?v=TqvQNQtWhdU)
+
 # Requirement
 
 *   [Code School Membership](https://www.codeschool.com/pricing) 
