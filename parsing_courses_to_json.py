@@ -6,6 +6,7 @@ import os
 import urllib
 from time import sleep
 import atexit
+from selenium.webdriver.common.keys import Keys
 
 Username = ""
 Password = ""
@@ -28,7 +29,7 @@ def sign_in():
     browser.find_element_by_id("user_password").clear()
     browser.find_element_by_id("user_password").send_keys(Password)
     browser.find_element_by_xpath("//div[@id='sign-in-form']/form/div/div/button").click()
-    
+
 def LinkGenerator():
     response = requests.get('https://www.codeschool.com/courses/')
     soup = BeautifulSoup(response.text,'lxml')
@@ -37,70 +38,66 @@ def LinkGenerator():
         list.append(item['href'])
     return list
 
+def cleanPathName(name):
+    if name == "HTML/CSS":
+        name = "HTML&CSS"
+    elif name == ".NET":
+        name = "dot NET"
+    return name
+
 def readACourse(link):
     global browser
-    
     course = {
         "name": "",
         "path": "",
         "url" : "",
-        "folders": []
+        "levels": []
     }
-    
-    browser.get("https://www.codeschool.com" + link + "/videos")
+    course_link = "https://www.codeschool.com" + link + "/videos"
+    browser.get(course_link)
     html = browser.page_source
     soup = BeautifulSoup(html, 'lxml')
-    
-    NAME = soup.find('h1',{'class','courseBanner-title'}).text
-    PATH = soup.find('p',{'class':'mbf tss ttu'}).find('a').text
-    
-    if PATH == "HTML/CSS":
-        PATH = "HTML&CSS"
-    elif PATH == ".NET":
-        PATH = "dot NET"
-    print PATH + "  /  " + NAME
-    
-    course['name'] = NAME
-    course['path'] = PATH
-    course['url'] = "https://www.codeschool.com" + link + "/videos"
-    
-    cleanSoup = soup.find('div',{'class':'row has-sector'})
-    videos = cleanSoup.findAll('a',{'class':'bdrn js-level-open'})
-    titles = cleanSoup.find_all('strong')
-    
-    videoCount = 0
-    flag = 0
-    for title in titles:
-        if title.has_attr('class'):
+
+
+    course_name = soup.find('h1',{'class','courseBanner-title'}).text
+    course_path = soup.find('p',{'class':'mbf tss ttu'}).find('a').text
+    course_path = cleanPathName(course_path)
+
+    course['name'] = course_name
+    course['path'] = course_path
+    course['url'] = course_link
+
+    print course_path
+    print course_name
+
+    ls = soup.select("div.level")
+
+    levels = []
+    for l in ls:
+        level_name = l.select_one("p.tss.level-title strong").text
+        videos = l.select("li.list-item.video-title")
+        level = {
+            "name":"",
+            "videos":[]
+        }
+        level["name"] = level_name
+        print "  " + level_name
+        for v in videos:
             video = {
-                "name": "",
-                "url": "",
+                "name":"",
+                "url":""
             }
-            URL = clickTitle(videos[videoCount]['href'])
-            
-            TITLE = title.text
-            if "?" in title.text:
-                TITLE.replace('?','<Q>')
+            video_title = v.select_one("strong.tct").text
+            click_url = v.select_one("a.bdrn.js-level-open")["href"]
 
+            print "   " + video_title
+            direct_url = clickTitle(click_url)
+            video["name"] = video_title
+            video["url"] = direct_url
+            level["videos"].append(video)
 
-            video['name'] = TITLE
-            video['url'] = URL
-            folder['videos'].append(video)
-
-            videoCount+=1
-        else:
-            if flag:
-                course['folders'].append(folder)
-            folder = {
-                "name" : "",
-                "videos" : [] 
-            }
-            folder['name'] = title.text
-            flag = 1
-            
-        if videoCount >= len(videos):
-            course['folders'].append(folder)
-            break
+            # print direct_url
+        course["levels"].append(level)
     return course
 
 def readVideoDirectURL():
@@ -111,16 +108,17 @@ def readVideoDirectURL():
     return URL
 
 def clickTitle(href):
-    global browsr 
-    browser.find_element_by_css_selector("a[href*='"+ href +"']").click()
-    sleep(0.6)
+    global browsr
+    browser.execute_script('''document.querySelector("a[href='%s']").click()''' % href)
+    sleep(2)
     URL = readVideoDirectURL()
-    browser.find_element_by_class_name('js-video-manager-close').click()
-    sleep(0.5)
+    browser.find_element_by_tag_name("body").send_keys(Keys.ESCAPE)
+    sleep(2)
     return URL
 
-sign_in()
 Links = LinkGenerator()
+sign_in()
+print "Signed !"
 
 courses = []
 for index, link in enumerate(Links):

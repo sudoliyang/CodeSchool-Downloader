@@ -32,9 +32,10 @@ with open('courses.json') as json_file:
 for course in courses:
 	MAIN_PATH = course['path']
 	COURSE_NAME = course['name']
-	for folder in course['folders']:
-		FOLDER_PATH = folder['name']
+	for level in course['levels']:
+		FOLDER_PATH = level['name']
 		PATH = MAIN_PATH + "/" + COURSE_NAME + "/" + FOLDER_PATH
-		for video in folder['videos']:
+		for video in level['videos']:
 			video['name']
 			downloadAFileWithPath(video['url'], PATH, video['name'], "mp4")
+
