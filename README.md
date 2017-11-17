@@ -4,7 +4,7 @@ This is a python code that helps you to download all videos from [Code School](h
 If you have any question feel free to contact me at `sudo.liyang [at] gmail.com`.
 
 # Donations
-Bitcoin address:1N5EoxpR9w5mdG7WBbThA96hx6bu6QoNbh
+Bitcoin address: `1N5EoxpR9w5mdG7WBbThA96hx6bu6QoNbh`
 
 ## Demo 
 
