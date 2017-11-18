@@ -2,6 +2,7 @@ import requests
 import json
 from bs4 import BeautifulSoup
 from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
 import os
 import urllib
 from time import sleep
@@ -17,6 +18,13 @@ def saveToJSON():
     with open("screencasts.json", "w") as json_file:
         json_file.write(prettyScreencast)
 
+def cleanPathName(name):
+    if name == "HTML/CSS":
+        name = "HTML&CSS"
+    elif name == ".NET":
+        name = "dot NET"
+    return name
+
 atexit.register(saveToJSON)
 
 def sign_in():
@@ -29,41 +37,80 @@ def sign_in():
     browser.find_element_by_id("user_password").send_keys(Password)
     browser.find_element_by_xpath("//div[@id='sign-in-form']/form/div/div/button").click()
 
-def readAScreenCast(link):
-    global browser
-    browser.get('https://codeschool.com' + link)
+def parsePageScreenCastLinks():
     html = browser.page_source
-    soup = BeautifulSoup(html ,'lxml')
-    return soup.find('a',{'class','tag'}).text, soup.find('span',{'class','has-tag--heading tci'}).text , soup.find('video')['src']
-    
-def getScreenCastLinks():
-    Links = []
-    shows = ['https://www.codeschool.com/shows/watch-us-build','https://www.codeschool.com/shows/feature-focus','https://www.codeschool.com/shows/code-tv']
-    for show in shows:
-        html = requests.get(show).text
-        soup = BeautifulSoup(html, 'lxml')
-        print show
-        for link in soup.find_all('a',{'class','thumb thumb--m thumb--screenshot screencast-thumb'}):
-            Links.append(link['href'])
-    
-    return Links
+    soup = BeautifulSoup(html, 'lxml')
+    articles = soup.select("a.db.has-play")
+    page_links = []
+    for article in articles:
+        page_links.append(article["href"])
+    return page_links
 
-sign_in() 
-Links = getScreenCastLinks()
+def generateScreenCastsLinks():
+    links = []
+    browser.get("https://www.codeschool.com/screencasts")
+    sleep(5)
+    page_links = parsePageScreenCastLinks()
+    links.extend(page_links)
+    changePage = '''
+    function changePage(page_number){
+        var links = document.querySelectorAll("a.video-page-link")
+        for(var i = links.length - 1; i > -1; i--){
+            var link = links[i]
+            if(link.dataset.page == page_number){
+                console.log(link)
+                link.click()
+                break
+            }
+        }
+    };
+    '''
+    for i in range(2,10):
+        browser.execute_script(changePage + "changePage(%s)" % i)
+        sleep(10)
+        page_links = parsePageScreenCastLinks()
+        links.extend(page_links)
+
+    # remove duplicates
+    links = set(links)
+    return links
+
+def getVideoDirectURL(url):
+    global browser
+
+    isException = True
+    reTryCount = 0
+
+    while(isException and reTryCount < 3):
+        try:
+            browser.get(url)
+            html  = browser.page_source
+            soup = BeautifulSoup(html, 'lxml')
+            url =  soup.select_one("video")["src"]
+            path =  soup.select_one(".tag--heading").text
+            name =  soup.select_one(".tci").text
+            isException = False
+        except KeyError:
+            print "KeyError"
+            sleep(2)
+            reTryCount += 1
+
+    return name, path, url
+
+
+sign_in()
+Links = generateScreenCastsLinks()
 
 Screencasts = []
 for index, link in enumerate(Links):
-    screencast = {
-    "name":"",
-    "url":"",
-    "path":""
-    }
-    screencast['path'], screencast['name'], screencast['url'] = readAScreenCast(link)
-
-    if screencast['path'] == "HTML/CSS":
-        screencast['path'] = "HTML&CSS"
-    elif screencast['path'] == ".NET":
-        screencast['path'] = "dot NET"
-
-    print screencast['name']
+    screencast = {  "name":"",
+                    "url":"",
+                    "video":"",
+                    "path":""}
+    print index, link
+    screencast["url"] = "https://www.codeschool.com" + link
+    screencast["name"], screencast["path"], screencast["video"] = getVideoDirectURL(screencast["url"])
+    screencast["path"] = cleanPathName(screencast["path"])
+    print screencast["name"]
     Screencasts.append(screencast)
+

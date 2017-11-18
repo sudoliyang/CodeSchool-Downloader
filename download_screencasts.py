@@ -31,4 +31,4 @@ with open('screencasts.json') as json_file:
 
 for screencast in screencasts: 
     MAIN_PATH = screencast['path']
-    downloadAFileWithPath(screencast['url'], MAIN_PATH, screencast['name'], "mp4")
+    downloadAFileWithPath(screencast['video'], MAIN_PATH, screencast['name'], "mp4")
